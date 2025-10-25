@@ -6,6 +6,10 @@ module.exports = function (api) {
       ["babel-preset-expo", { jsxImportSource: "nativewind" }],
       "nativewind/babel",
     ],
+    // Reanimated 插件必须放在 plugins 最后
+    plugins: [
+      "react-native-reanimated/plugin",
+    ],
   };
 };
 

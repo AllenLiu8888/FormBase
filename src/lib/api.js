@@ -16,7 +16,7 @@ export function assertEnvReady() {
  * @param {string} endpoint - 形如 "/form"、"/field"、"/record" 或包含查询的完整路径
  * @param {string} method - GET/POST/PATCH/DELETE，默认 GET
  * @param {object|null} body - 写操作请求体，自动附加 username
- * @returns {Promise<any>} - JSON 响应
+ * @returns {Promise<any>} - JSON 响应或空对象（无内容）
  */
 export async function apiRequest(endpoint, method = 'GET', body = null) {
   assertEnvReady();
@@ -41,7 +41,15 @@ export async function apiRequest(endpoint, method = 'GET', body = null) {
     const text = await res.text();
     throw new Error(`HTTP ${res.status}: ${text}`);
   }
-  return res.json();
+
+  // CN: 处理无内容或非 JSON 响应，避免 JSON 解析错误（如 DELETE 204）
+  if (res.status === 204) return {};
+  const contentType = res.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return res.json();
+  }
+  // CN: 其他情况返回空对象（例如空文本）
+  return {};
 }
 
 // CN: 表单资源 API

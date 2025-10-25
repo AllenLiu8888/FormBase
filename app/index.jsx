@@ -6,7 +6,7 @@ export default function HomeScreen() {
   // CN: 首页（Welcome），提供到主要模块的入口
   return (
     <View className="flex-1 items-center justify-center gap-3 bg-white">
-      <Text className="text-2xl font-semibold">Home / Welcome</Text>
+      <Text className="text-xl font-semibold">Home / Welcome</Text>
       {/* CN: 下面是到各页面的示例跳转 */}
       <Link href="/about">Go to About</Link>
       <Link href="/forms">Go to My Forms</Link>
