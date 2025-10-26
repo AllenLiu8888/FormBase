@@ -77,11 +77,17 @@ export const RecordApi = {
 
 // CN: JSONB 过滤构造（线性 AND/OR，不支持括号分组）
 // CN: conditions 示例：[{ path: "values->>category", op: "ilike", value: "*Python*" }]
-export function buildJsonbFilterQuery(formId, conditions = []) {
-  const parts = [`form_id=eq.${formId}`];
-  for (const c of conditions) {
-    // CN: 对 path 与 value 做 URL 编码；op 由调用方传入（如 ilike、eq、gt 等）
-    parts.push(`${encodeURIComponent(c.path)}=${c.op}.${encodeURIComponent(c.value)}`);
+export function buildJsonbFilterQuery(formId, conditions = [], join = 'AND') {
+  const base = [`form_id=eq.${formId}`];
+  if (!Array.isArray(conditions) || conditions.length === 0) return `/record?${base.join('&')}`;
+
+  const upperJoin = (join || 'AND').toUpperCase();
+  if (upperJoin === 'OR') {
+    // CN: or=() 语法需要 path.op.value，用点连接；path 使用原始 JSON 路径（values->>field）
+    const parts = conditions.map((c) => `${c.path}.${c.op}.${c.value}`);
+    return `/record?${base.join('&')}&or=(${parts.join(',')})`;
   }
-  return `/record?${parts.join('&')}`;
+  // AND：线性参数 path=op.value
+  const items = conditions.map((c) => `${encodeURIComponent(c.path)}=${c.op}.${encodeURIComponent(c.value)}`);
+  return `/record?${[...base, ...items].join('&')}`;
 }

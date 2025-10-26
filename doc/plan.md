@@ -33,9 +33,10 @@
    - 分页：limit=20 & offset；复制 JSON 到剪贴板（rubric 1.6 + 2.3）
 5. 地图（Map）模块（已完成）
    - react-native-maps 渲染 location 记录与气泡详情；无 location 字段时隐藏 Map 标签（rubric 2.2）
-6. 筛选（Filter Builder）（待开始）
-   - 线性 AND/OR（不支持括号）
-   - 根据字段类型显示运算符（字符串/数值），生成 PostgREST 查询（rubric 1.7）
+6. 筛选（Filter Builder）（已完成）
+   - 线性 AND/OR（不支持括号），外层全局 Join 控制
+   - Operator 文字映射（equals/greater than/.../contains）→ PostgREST（eq/gt/.../ilike）
+   - 按字段类型动态显示运算符；多条 criteria 可删除；顶部卡片展示
 
 ## 设备与权限
 

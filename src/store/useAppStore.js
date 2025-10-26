@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import Constants from 'expo-constants';
-import { FormApi, FieldApi, RecordApi } from '../lib/api';
+import { FormApi, FieldApi, RecordApi, buildJsonbFilterQuery, apiRequest } from '../lib/api';
 
 // CN: 从 Expo extra 读取初始的用户名与 JWT，便于全局使用
 const { USERNAME, JWT_TOKEN } = Constants.expoConfig?.extra || {};
@@ -128,13 +128,20 @@ export const useAppStore = create((set, get) => ({
   },
 
   // CN: 记录 Actions —— 列表/创建/删除（分页）
-  fetchRecords: async (formId, { limit = 20, append = false } = {}) => {
+  fetchRecords: async (formId, { limit = 20, append = false, conditions, join = 'AND' } = {}) => {
     if (!formId) return;
     set({ loading: true, error: null });
     try {
       const state = get().recordsByForm[String(formId)] || { items: [], offset: 0 };
       const offset = append ? state.offset : 0;
-      const list = await RecordApi.listByForm(formId, { limit, offset });
+      let list;
+      if (Array.isArray(conditions) && conditions.length > 0) {
+        const base = buildJsonbFilterQuery(formId, conditions, join);
+        const endpoint = `${base}&limit=${limit}&offset=${offset}`;
+        list = await apiRequest(endpoint, 'GET');
+      } else {
+        list = await RecordApi.listByForm(formId, { limit, offset });
+      }
       const items = Array.isArray(list) ? list : [];
       const nextItems = append ? [...(state.items || []), ...items] : items;
       get().setRecordsForForm(formId, nextItems, offset + items.length, items.length === limit);

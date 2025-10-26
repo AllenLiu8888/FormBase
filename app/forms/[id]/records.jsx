@@ -11,6 +11,15 @@ import CheckboxField from '../../../src/components/inputs/CheckboxField';
 import LocationField from '../../../src/components/inputs/LocationField';
 import FormSheet from '../../../src/components/FormSheet';
 
+const OP_OPTIONS = [
+  { label: 'equals', code: 'eq', number: true, text: true },
+  { label: 'greater than', code: 'gt', number: true },
+  { label: 'less than', code: 'lt', number: true },
+  { label: 'greater or equal', code: 'ge', number: true },
+  { label: 'less or equal', code: 'le', number: true },
+  { label: 'contains', code: 'ilike', text: true },
+];
+
 export default function RecordsScreen() {
   // CN: 记录列表 + 动态录入
   const { id } = useLocalSearchParams();
@@ -30,11 +39,23 @@ export default function RecordsScreen() {
   const [values, setValues] = useState({});
   const [errors, setErrors] = useState({});
   const [showForm, setShowForm] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [conditions, setConditions] = useState([]); // [{field, op, value, isNum}]
+  const [join, setJoin] = useState('AND');
+
+  function removeCondition(idx) {
+    setConditions((prev) => prev.filter((_, i) => i !== idx));
+  }
 
   useEffect(() => {
     fetchFields(formId);
-    fetchRecords(formId, { limit: 20, append: false });
-  }, [formId, fetchFields, fetchRecords]);
+    const conds = conditions.map((c) => ({
+      path: `values->>${c.field}`,
+      op: c.isNum ? c.opCode : (c.opCode === 'ilike' ? 'ilike' : 'eq'),
+      value: c.isNum ? c.value : (c.opCode === 'ilike' ? `*${c.value}*` : c.value),
+    }));
+    fetchRecords(formId, { limit: 20, append: false, conditions: conds, join });
+  }, [formId, fetchFields, fetchRecords, conditions, join]);
 
   function setFieldValue(key, v) {
     setValues((prev) => ({ ...prev, [key]: v }));
@@ -96,6 +117,33 @@ export default function RecordsScreen() {
   return (
     <View className="flex-1 bg-white">
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 160 }}>
+        <View className="mb-3 rounded-xl border border-gray-200 p-3 bg-gray-50">
+            <Text className="text-gray-700 text-sm font-medium mb-2">Filters</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {conditions.map((c, i) => (
+                <View key={`${c.field}-${i}`} className="flex-row items-center rounded-full bg-white border border-gray-300 px-3 py-1">
+                  <Text className="text-xs text-gray-700">{c.field} {c.label} {String(c.value)}</Text>
+                  <Pressable onPress={() => removeCondition(i)} className="ml-2">
+                    <Text className="text-gray-500 text-xs">×</Text>
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          <View className="flex-row items-center justify-between mt-3">
+            <View className="flex-row gap-2">
+              <Pressable onPress={() => setJoin('AND')} className={`px-3 py-1 rounded-full border ${join==='AND' ? 'bg-black' : ''} border-gray-300`}>
+                <Text className={`text-xs ${join==='AND' ? 'text-white' : 'text-gray-800'}`}>AND</Text>
+              </Pressable>
+              <Pressable onPress={() => setJoin('OR')} className={`px-3 py-1 rounded-full border ${join==='OR' ? 'bg-black' : ''} border-gray-300`}>
+                <Text className={`text-xs ${join==='OR' ? 'text-white' : 'text-gray-800'}`}>OR</Text>
+              </Pressable>
+            </View>
+            <Pressable onPress={() => setShowFilter(true)} className="px-3 py-1 rounded-full bg-black">
+              <Text className="text-white text-xs">Add Criteria</Text>
+            </Pressable>
+          </View>
+        </View>
+
         <View className="gap-2">
           {recState.items.map((r, idx) => (
             <View key={`${r.id}-${idx}`} className="rounded-xl border border-gray-200 p-3">
@@ -128,8 +176,8 @@ export default function RecordsScreen() {
         )}
       </ScrollView>
 
-      {/* CN: 底部固定“Add Record”按钮，点击弹出模态填写 */}
-      <View className="absolute left-0 right-0 bottom-24 px-10 pb-5">
+      {/* CN: 底部固定按钮区：仅 Add Record */}
+      <View className="absolute left-0 right-0 bottom-24 px-10 pb-5 gap-3">
         <Pressable onPress={() => setShowForm(true)} className="w-full rounded-full bg-black py-3.5 items-center">
           <Text className="text-white text-base font-semibold">Add Record</Text>
         </Pressable>
@@ -165,6 +213,40 @@ export default function RecordsScreen() {
           } };
           return { key: f.name, type: 'input', label: f.name };
         })}
+      />
+
+      {/* CN: 过滤条件弹窗（可添加多条条件 + AND/OR） */}
+      <FormSheet
+        visible={showFilter}
+        mode="create"
+        initialValues={{ tmp_field: fields[0]?.name, tmp_op: 'equals', tmp_value: '' }}
+        submitting={false}
+        onClose={() => setShowFilter(false)}
+        onSubmit={(payload) => {
+          const fieldName = payload?.tmp_field;
+          const rawOp = payload?.tmp_op || 'equals';
+          const value = payload?.tmp_value ?? '';
+          if (!fieldName || String(value) === '') return;
+          const isNum = fields.find((f) => f.name === fieldName)?.is_num;
+          const opDef = OP_OPTIONS.find((o) => o.label === rawOp) || OP_OPTIONS[0];
+          setConditions((prev) => [...prev, { field: fieldName, opCode: opDef.code, label: opDef.label, value, isNum }]);
+          setShowFilter(false);
+        }}
+        title="Add Criteria"
+        showDescription={false}
+        schema={[
+          { key: 'tmp_field', type: 'select', label: 'Field', options: fields.map((f) => f.name) },
+          {
+            key: 'tmp_op',
+            type: 'select',
+            label: 'Operator',
+            options: (vals) => {
+              const isNum = fields.find((f) => f.name === (vals?.tmp_field || fields[0]?.name))?.is_num;
+              return OP_OPTIONS.filter((o) => (isNum ? o.number : o.text)).map((o) => o.label);
+            },
+          },
+          { key: 'tmp_value', type: 'input', label: 'Value', placeholder: 'Enter value', keyboardType: 'default' },
+        ]}
       />
     </View>
   );

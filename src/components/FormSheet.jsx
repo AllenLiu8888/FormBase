@@ -102,7 +102,7 @@ export default function FormSheet({ visible, mode, initialValues, submitting, on
                   if (f.type === 'select') {
                     const display = values[f.key] ?? '';
                     const isOpen = openSelectKey === f.key;
-                    const opts = Array.isArray(f.options) ? f.options : [];
+                    const opts = typeof f.options === 'function' ? f.options(values) : (Array.isArray(f.options) ? f.options : []);
                     return (
                       <View key={f.key}>
                         <Text className="text-gray-700 mb-2">{f.label || f.key}</Text>
