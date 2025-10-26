@@ -120,7 +120,6 @@ export default function FormsListScreen() {
                 id={f.id}
                 name={f.name}
                 description={f.description}
-                onPress={() => {}}
                 onEdit={() => openEditSheet(f)}
                 onDelete={() => confirmDelete(f.id)}
                 deleting={deletingId === f.id}
@@ -137,7 +136,7 @@ export default function FormsListScreen() {
       )}
 
       {/* CN: 底部仅按钮（无背景条），预留安全区与额外间距，圆角更大，与手机底部弧度对齐 */}
-      <View className="absolute left-0 right-0 bottom-0 px-10 pb-5">
+      <View className="absolute left-0 right-0 bottom-24 px-10 pb-5">
         <Pressable onPress={openCreateSheet} className="w-full rounded-full bg-black py-3.5 items-center flex-row justify-center gap-2 shadow">
           <Ionicons name="add" size={18} color="#ffffff" />
           <Text className="text-white text-base font-semibold">Add Form</Text>

@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 export default function FormCard({ id, name, description, onPress, onEdit, onDelete, deleting }) {
   // CN: 单个表单卡片：图标 + 标题/描述 + 进入箭头 + 编辑/删除按钮
+  const handlePress = onPress || (() => router.push(`/forms/${id}/fields`));
   return (
     <View className="w-full rounded-2xl bg-white border border-gray-200 shadow-sm px-4 py-3 flex-row items-center">
-      <Pressable onPress={onPress} className="flex-1 flex-row items-center">
+      <Pressable onPress={handlePress} className="flex-1 flex-row items-center">
         <View className="w-10 h-10 rounded-xl bg-gray-100 items-center justify-center mr-3">
           <Ionicons name="document-text-outline" size={20} color="#111827" />
         </View>
