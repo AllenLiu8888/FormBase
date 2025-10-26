@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import Constants from 'expo-constants';
-import { FormApi, FieldApi } from '../lib/api';
+import { FormApi, FieldApi, RecordApi } from '../lib/api';
 
 // CN: 从 Expo extra 读取初始的用户名与 JWT，便于全局使用
 const { USERNAME, JWT_TOKEN } = Constants.expoConfig?.extra || {};
@@ -20,12 +20,20 @@ export const useAppStore = create((set, get) => ({
 
   // CN: 字段数据（按 formId 归档）
   fieldsByForm: {},
+  recordsByForm: {}, // CN: { [formId]: { items: [], offset, hasMore } }
 
   // CN: 内部通用 setter
   setForms: (forms) => set({ forms: Array.isArray(forms) ? forms : [] }),
   setError: (error) => set({ error }),
   setFieldsForForm: (formId, fields) =>
     set((s) => ({ fieldsByForm: { ...s.fieldsByForm, [String(formId)]: Array.isArray(fields) ? fields : [] } })),
+  setRecordsForForm: (formId, items, offset = 0, hasMore = true) =>
+    set((s) => ({
+      recordsByForm: {
+        ...s.recordsByForm,
+        [String(formId)]: { items: Array.isArray(items) ? items : [], offset, hasMore },
+      },
+    })),
 
   // CN: Actions —— 统一封装 API 调用，页面只调这些方法
   fetchForms: async () => {
@@ -116,6 +124,57 @@ export const useAppStore = create((set, get) => ({
       throw e;
     } finally {
       set({ submitting: false });
+    }
+  },
+
+  // CN: 记录 Actions —— 列表/创建/删除（分页）
+  fetchRecords: async (formId, { limit = 20, append = false } = {}) => {
+    if (!formId) return;
+    set({ loading: true, error: null });
+    try {
+      const state = get().recordsByForm[String(formId)] || { items: [], offset: 0 };
+      const offset = append ? state.offset : 0;
+      const list = await RecordApi.listByForm(formId, { limit, offset });
+      const items = Array.isArray(list) ? list : [];
+      const nextItems = append ? [...(state.items || []), ...items] : items;
+      get().setRecordsForForm(formId, nextItems, offset + items.length, items.length === limit);
+      set({ loading: false });
+    } catch (e) {
+      set({ error: e, loading: false });
+    }
+  },
+
+  createRecord: async (formId, values) => {
+    if (!formId || !values) return;
+    set({ submitting: true, error: null });
+    try {
+      const created = await RecordApi.create({ form_id: Number(formId), values });
+      const createdItem = Array.isArray(created) ? created[0] : created;
+      const key = String(formId);
+      const current = (get().recordsByForm[key]?.items) || [];
+      get().setRecordsForForm(formId, [createdItem, ...current], (get().recordsByForm[key]?.offset) || 0, true);
+    } catch (e) {
+      set({ error: e });
+      throw e;
+    } finally {
+      set({ submitting: false });
+    }
+  },
+
+  deleteRecord: async (formId, id) => {
+    if (!formId || !id) return;
+    set({ deletingId: id, error: null });
+    try {
+      await RecordApi.remove(id);
+      const key = String(formId);
+      const current = (get().recordsByForm[key]?.items) || [];
+      const next = current.filter((r) => r.id !== id);
+      get().setRecordsForForm(formId, next, (get().recordsByForm[key]?.offset) || 0, true);
+    } catch (e) {
+      set({ error: e });
+      throw e;
+    } finally {
+      set({ deletingId: null });
     }
   },
 }));

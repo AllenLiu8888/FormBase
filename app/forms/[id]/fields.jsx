@@ -3,6 +3,7 @@ import { View, Text, TextInput, Pressable, ScrollView, Switch } from 'react-nati
 import { useLocalSearchParams } from 'expo-router';
 import { useAppStore } from '../../../src/store/useAppStore';
 import FormSheet from '../../../src/components/FormSheet';
+import CheckboxPairRow from '../../../src/components/inputs/CheckboxPairRow';
 
 export default function FieldsScreen() {
   // CN: 字段列表与新增（先支持 text 字段）
@@ -45,7 +46,6 @@ export default function FieldsScreen() {
   return (
     <View className="flex-1 bg-white">
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 160 }}>
-        <Text className="text-base font-semibold">Fields</Text>
         {loading && <Text className="text-gray-600 mt-2">Loading...</Text>}
         {!!error && <Text className="text-red-500 mt-2">Error: {String(error?.message || error)}</Text>}
 
@@ -87,9 +87,9 @@ export default function FieldsScreen() {
         schema={[
           { key: 'name', type: 'input', label: 'Field Name', placeholder: 'Enter field name' },
           { key: 'field_type', type: 'select', label: 'Type', options: ['text', 'multiline', 'dropdown', 'location'], placeholder: 'Select type' },
-          { key: 'required', type: 'checkbox', label: 'Required' },
-          { key: 'is_num', type: 'checkbox', label: 'Is Number' },
-          { key: 'options', type: 'input', label: 'Dropdown Options (comma separated)', placeholder: 'e.g. option1, option2' },
+          // CN: 使用占位项，实际在 FormSheet 内可插槽渲染，但此处简单：用 visibleWhen 触发一个空占位，组件内部不渲染
+          { key: '__pair__', type: 'input', label: '', placeholder: '', visibleWhen: () => true },
+          { key: 'options', type: 'input', label: 'Dropdown Options (comma separated)', placeholder: 'e.g. option1, option2', visibleWhen: (v) => v.field_type === 'dropdown' },
         ]}
       />
     </View>

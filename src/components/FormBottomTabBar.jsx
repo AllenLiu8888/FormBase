@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function FormBottomTabBar({ formId }) {
+export default function FormBottomTabBar({ formId, hasMap = true }) {
   // CN: 表单内三页的自定义底部 Tab Bar，样式与 RootBottomNav 统一
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
@@ -21,10 +21,12 @@ export default function FormBottomTabBar({ formId }) {
           <Ionicons name="albums-outline" size={20} color={isActive(`${base}/records`) ? '#111827' : '#6B7280'} />
           <Text className={isActive(`${base}/records`) ? 'text-black text-xs mt-1' : 'text-gray-500 text-xs mt-1'}>Records</Text>
         </Pressable>
-        <Pressable onPress={() => router.replace(`${base}/map`)} className="items-center px-4 py-1 rounded-full">
-          <Ionicons name="map-outline" size={20} color={isActive(`${base}/map`) ? '#111827' : '#6B7280'} />
-          <Text className={isActive(`${base}/map`) ? 'text-black text-xs mt-1' : 'text-gray-500 text-xs mt-1'}>Map</Text>
-        </Pressable>
+        {hasMap && (
+          <Pressable onPress={() => router.replace(`${base}/map`)} className="items-center px-4 py-1 rounded-full">
+            <Ionicons name="map-outline" size={20} color={isActive(`${base}/map`) ? '#111827' : '#6B7280'} />
+            <Text className={isActive(`${base}/map`) ? 'text-black text-xs mt-1' : 'text-gray-500 text-xs mt-1'}>Map</Text>
+          </Pressable>
+        )}
       </View>
     </View>
   );

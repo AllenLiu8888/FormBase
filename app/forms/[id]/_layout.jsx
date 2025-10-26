@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Tabs } from 'expo-router';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable } from 'react-native';
 import FormBottomTabBar from '../../../src/components/FormBottomTabBar';
+import { useAppStore } from '../../../src/store/useAppStore';
 
 export default function FormTabsLayout() {
   // CN: 针对某个 form 的子路由，使用底部 Tabs 导航；头部样式与父级保持一致，并显示返回图标
   const { id } = useLocalSearchParams();
+  const fieldsByForm = useAppStore((s) => s.fieldsByForm);
+  const fetchFields = useAppStore((s) => s.fetchFields);
+  const fields = fieldsByForm[String(id)] || [];
+  const hasLocation = useMemo(() => fields.some((f) => f.field_type === 'location'), [fields]);
+
+  useEffect(() => {
+    fetchFields(id);
+  }, [id, fetchFields]);
   return (
     <Tabs
       screenOptions={{
@@ -25,7 +34,7 @@ export default function FormTabsLayout() {
           </Pressable>
         ),
       }}
-      tabBar={() => <FormBottomTabBar formId={id} />}
+      tabBar={() => <FormBottomTabBar formId={id} hasMap={hasLocation} />}
     >
       <Tabs.Screen
         name="fields"
@@ -47,6 +56,7 @@ export default function FormTabsLayout() {
           title: 'Map',
           tabBarIcon: ({ color, size }) => (<Ionicons name="map-outline" color={color} size={size} />),
         }}
+        href={hasLocation ? undefined : null}
       />
     </Tabs>
   );

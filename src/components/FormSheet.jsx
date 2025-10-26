@@ -50,15 +50,50 @@ export default function FormSheet({ visible, mode, initialValues, submitting, on
             {/* CN: schema 渲染优先 */}
             {Array.isArray(schema) && schema.length > 0 ? (
               <View className="gap-4">
-                {schema.map((f) => {
+                {(schema.filter((f) => !f.visibleWhen || f.visibleWhen(values))).map((f, idx) => {
                   if (f.type === 'input') {
+                    // CN: 特殊键 __pair__ 用于插入 Required/Is Number 横排控件
+                    if (f.key === '__pair__') {
+                      // 动态引入，避免循环依赖
+                      const Pair = require('./inputs/CheckboxPairRow').default;
+                      return (
+                        <View key="__pair__-wrap" className="pt-2">
+                          <Text className="text-gray-700 mb-2">Field Settings</Text>
+                          <Pair
+                            leftLabel="Required"
+                            leftValue={Boolean(values.required)}
+                            onChangeLeft={(v) => setValues((prev) => ({ ...prev, required: v }))}
+                            rightLabel="Stores Num"
+                            rightValue={Boolean(values.is_num)}
+                            onChangeRight={(v) => setValues((prev) => ({ ...prev, is_num: v }))}
+                          />
+                        </View>
+                      );
+                    }
                     return (
-                      <View key={f.key}>
+                      <View key={`${f.key}-${idx}`}>
                         <Text className="text-gray-700 mb-2">{f.label || f.key}</Text>
                         <TextInput
                           value={String(values[f.key] ?? '')}
                           onChangeText={(t) => setValues((prev) => ({ ...prev, [f.key]: t }))}
                           placeholder={f.placeholder || ''}
+                          keyboardType={f.keyboardType || 'default'}
+                          className="border border-gray-300 rounded-2xl px-4 py-3 text-base"
+                        />
+                      </View>
+                    );
+                  }
+                  if (f.type === 'multiline') {
+                    return (
+                      <View key={`${f.key}-${idx}`}>
+                        <Text className="text-gray-700 mb-2">{f.label || f.key}</Text>
+                        <TextInput
+                          value={String(values[f.key] ?? '')}
+                          onChangeText={(t) => setValues((prev) => ({ ...prev, [f.key]: t }))}
+                          placeholder={f.placeholder || ''}
+                          multiline
+                          numberOfLines={f.numberOfLines || 4}
+                          textAlignVertical="top"
                           className="border border-gray-300 rounded-2xl px-4 py-3 text-base"
                         />
                       </View>
@@ -96,6 +131,26 @@ export default function FormSheet({ visible, mode, initialValues, submitting, on
                           </View>
                         )}
                       </View>
+                    );
+                  }
+                  if (f.type === 'location') {
+                    const LocationField = require('./inputs/LocationField').default;
+                    return (
+                      <LocationField
+                        key={`${f.key}-${idx}`}
+                        label={f.label || f.key}
+                        value={values[f.key]}
+                        onPick={async () => {
+                          try {
+                            if (typeof f.onPick === 'function') {
+                              const loc = await f.onPick();
+                              if (loc && typeof loc.lon === 'number' && typeof loc.lat === 'number') {
+                                setValues((prev) => ({ ...prev, [f.key]: loc }));
+                              }
+                            }
+                          } catch {}
+                        }}
+                      />
                     );
                   }
                   if (f.type === 'checkbox') {
