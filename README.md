@@ -8,6 +8,10 @@
 
    ```bash
    npm install
+   npx expo install expo-router react-native-safe-area-context react-native-screens
+   npx expo install nativewind tailwindcss
+   npx expo install react-native-reanimated
+   npx expo install expo-clipboard expo-location react-native-maps expo-image-picker expo-camera
    ```
 
 2. 本地开发（Expo）
@@ -37,7 +41,7 @@
 - 表单管理：创建、编辑、删除（/form）
 - 字段管理：为表单添加字段定义（/field）
 - 记录管理：录入、删除、列表与筛选（/record）
-- Filter Builder：基于 JSONB 的条件筛选
+- Filter Builder：基于 JSONB 的条件筛选（多条 criteria，外层 AND/OR 二选一；Operator 文字映射 equals/greater than/.../contains）
 - 地图：基于 location 字段的记录可视化
 - 设备 API：相机/图片、定位、剪贴板
 
@@ -62,6 +66,20 @@
 - 所有请求携带 `Authorization: Bearer <JWT_TOKEN>`
 - 所有 POST/PATCH 请求体包含 `username: USERNAME`
 - Header 建议：`Content-Type: application/json`，`Prefer: return=representation`
+
+### Filter 查询示例
+
+AND 示例：
+
+```
+/record?form_id=eq.{id}&values->>'price'=gt.100&values->>'category'=eq.Book
+```
+
+OR 示例：
+
+```
+/record?form_id=eq.{id}&or=(values->>'price'.lt.50,values->>'category'.eq.Toy)
+```
 
 ## 提交与声明
 

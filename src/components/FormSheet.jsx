@@ -153,6 +153,17 @@ export default function FormSheet({ visible, mode, initialValues, submitting, on
                       />
                     );
                   }
+                  if (f.type === 'image') {
+                    const ImageField = require('./inputs/ImageField').default;
+                    return (
+                      <ImageField
+                        key={`${f.key}-${idx}`}
+                        label={f.label || f.key}
+                        value={values[f.key]}
+                        onPick={(uri) => setValues((prev) => ({ ...prev, [f.key]: uri }))}
+                      />
+                    );
+                  }
                   if (f.type === 'checkbox') {
                     const checked = Boolean(values[f.key]);
                     return (

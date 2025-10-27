@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, Alert, Image as RNImage } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 import * as Location from 'expo-location';
@@ -9,6 +10,7 @@ import MultilineField from '../../../src/components/inputs/MultilineField';
 import DropdownField from '../../../src/components/inputs/DropdownField';
 import CheckboxField from '../../../src/components/inputs/CheckboxField';
 import LocationField from '../../../src/components/inputs/LocationField';
+import ImageField from '../../../src/components/inputs/ImageField';
 import FormSheet from '../../../src/components/FormSheet';
 
 const OP_OPTIONS = [
@@ -61,24 +63,36 @@ export default function RecordsScreen() {
     setValues((prev) => ({ ...prev, [key]: v }));
   }
 
-  function validate(vals = values) {
+  function collectErrors(vals = values) {
     const err = {};
     for (const f of fields) {
       const v = vals[f.name];
       if (f.required && (v === undefined || v === null || v === '')) {
         err[f.name] = 'Required';
+        continue;
       }
       if (f.is_num && v !== undefined && v !== null && v !== '' && Number.isNaN(Number(v))) {
         err[f.name] = 'Must be a number';
       }
     }
+    return err;
+  }
+
+  function validate(vals = values) {
+    const err = collectErrors(vals);
     setErrors(err);
     return Object.keys(err).length === 0;
   }
 
   async function onCreate(vals) {
     const submittingVals = vals || values;
-    if (!validate(submittingVals)) return;
+    const err = collectErrors(submittingVals);
+    if (Object.keys(err).length > 0) {
+      const msg = Object.entries(err).map(([k, v]) => `${k}: ${v}`).join('\n');
+      Alert.alert('Validation', msg || 'Please fix validation errors.');
+      setErrors(err);
+      return;
+    }
     await createRecord(formId, submittingVals);
     setValues({});
     setShowForm(false);
@@ -145,10 +159,44 @@ export default function RecordsScreen() {
         </View>
 
         <View className="gap-2">
-          {recState.items.map((r, idx) => (
+          {recState.items.map((r, idx) => {
+            const locationKeys = fields.filter((f) => f.field_type === 'location').map((f) => f.name);
+            let loc = null;
+            if (locationKeys.length > 0) {
+              const key = locationKeys.find((k) => r?.values && r.values[k]);
+              if (key) loc = r.values[key];
+            }
+            if (!loc) loc = r?.values?.location || r?.values?.Location || r?.values?.loc;
+            const imageKeys = fields.filter((f) => f.field_type === 'image').map((f) => f.name);
+            let imageUri = null;
+            if (imageKeys.length > 0) {
+              const ik = imageKeys.find((k) => typeof r?.values?.[k] === 'string');
+              if (ik) imageUri = r.values[ik];
+            }
+            return (
             <View key={`${r.id}-${idx}`} className="rounded-xl border border-gray-200 p-3">
-              <Text className="text-gray-900">#{r.id}</Text>
-              <Text className="text-gray-600 text-xs mt-1">{JSON.stringify(r.values)}</Text>
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1 pr-3">
+                  <Text className="text-gray-900">#{r.id}</Text>
+                  <Text className="text-gray-600 text-xs mt-1">{JSON.stringify(r.values)}</Text>
+                </View>
+                <View className="flex-col gap-2 items-end">
+                  {loc && typeof loc.lat === 'number' && typeof loc.lon === 'number' && (
+                    <MapView
+                      pointerEvents="none"
+                      style={{ width: 56, height: 56, borderRadius: 8 }}
+                      initialRegion={{ latitude: loc.lat, longitude: loc.lon, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
+                    >
+                      <Marker coordinate={{ latitude: loc.lat, longitude: loc.lon }}>
+                        <View style={{ width: 8, height: 8, borderRadius: 10, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: '#ff0000' }} />
+                      </Marker>
+                    </MapView>
+                  )}
+                  {imageUri && (
+                    <RNImage source={{ uri: String(imageUri) }} style={{ width: 56, height: 56, borderRadius: 8 }} />
+                  )}
+                </View>
+              </View>？
               <View className="flex-row gap-3 mt-2">
                 <Pressable disabled={deletingId === r.id} onPress={() => deleteRecord(formId, r.id)} className="px-3 py-2 rounded-full border border-gray-300">
                   <Text className="text-gray-800 text-sm">Delete</Text>
@@ -163,7 +211,7 @@ export default function RecordsScreen() {
                 </Pressable>
               </View>
             </View>
-          ))}
+          )})}
           {recState.items.length === 0 && <Text className="text-gray-500">No records.</Text>}
         </View>
 
@@ -197,6 +245,7 @@ export default function RecordsScreen() {
           if (f.field_type === 'text') return { key: f.name, type: 'input', label: f.name, keyboardType: f.is_num ? 'numeric' : 'default' };
           if (f.field_type === 'multiline') return { key: f.name, type: 'multiline', label: f.name };
           if (f.field_type === 'dropdown') return { key: f.name, type: 'select', label: f.name, options: Array.isArray(f.options?.dropdown) ? f.options.dropdown : [] };
+          if (f.field_type === 'image') return { key: f.name, type: 'image', label: f.name, onPick: async () => null };
           if (f.field_type === 'location') return { key: f.name, type: 'location', label: f.name, onPick: async () => {
             try {
               const { status } = await Location.requestForegroundPermissionsAsync();

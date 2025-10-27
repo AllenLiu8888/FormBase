@@ -40,10 +40,10 @@
 
 ## 设备与权限
 
-1. 设备能力（进行中）
-    - image-picker/camera：记录存 URI（rubric 2.1）（待开始）
-    - location：expo-location 获取当前坐标（已接入，rubric 1.5/2.2）
-    - clipboard：复制 record.values 为字符串（已接入，rubric 2.3）
+1. 设备能力（已完成）
+    - image-picker/camera：选择/拍照并存 URI（rubric 2.1）
+    - location：expo-location 获取当前坐标（rubric 1.5/2.2）
+    - clipboard：复制 record.values 为字符串（rubric 2.3）
 
 ## 质量与提交
 

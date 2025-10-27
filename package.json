@@ -11,7 +11,9 @@
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "expo": "~54.0.13",
+    "expo-camera": "~17.0.8",
     "expo-clipboard": "~8.0.7",
+    "expo-image-picker": "~17.0.8",
     "expo-linking": "~8.0.8",
     "expo-location": "~19.0.7",
     "expo-router": "~6.0.13",

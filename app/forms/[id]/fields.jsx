@@ -86,7 +86,7 @@ export default function FieldsScreen() {
         submitLabel={submitting ? 'Creating...' : 'Create'}
         schema={[
           { key: 'name', type: 'input', label: 'Field Name', placeholder: 'Enter field name' },
-          { key: 'field_type', type: 'select', label: 'Type', options: ['text', 'multiline', 'dropdown', 'location'], placeholder: 'Select type' },
+          { key: 'field_type', type: 'select', label: 'Type', options: ['text', 'multiline', 'dropdown', 'location', 'image'], placeholder: 'Select type' },
           // CN: 使用占位项，实际在 FormSheet 内可插槽渲染，但此处简单：用 visibleWhen 触发一个空占位，组件内部不渲染
           { key: '__pair__', type: 'input', label: '', placeholder: '', visibleWhen: () => true },
           { key: 'options', type: 'input', label: 'Dropdown Options (comma separated)', placeholder: 'e.g. option1, option2', visibleWhen: (v) => v.field_type === 'dropdown' },
