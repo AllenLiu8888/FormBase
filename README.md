@@ -1,6 +1,6 @@
 # FormBase (React Native + Expo)
 
-Front-end for a form system (Assignment 3), built with React Native + Expo, integrated with a PostgREST backend. Supports Forms, Fields, Records, Filter Builder, and Map visualization, following Apple HIG-style UI via NativeWind.
+Front-end for a form system , built with React Native + Expo, integrated with a PostgREST backend. Supports Forms, Fields, Records, Filter Builder, and Map visualization, following Apple HIG-style UI via NativeWind.
 
 ## Getting Started
 
@@ -115,25 +115,6 @@ OR example (PostgREST `or=(...)`):
 
 - Use Tailwind classes via `className` in RN components.
 - `global.css` imports Tailwind layers; `tailwind.config.js` scans `app/**` and `src/**`.
-
-## Troubleshooting
-
-- Worklets version mismatch:
-  - Symptom: `[Worklets] Mismatch between JavaScript part and native part ...`
-  - Fix: align `react-native-worklets` JS with Expo Go native version (e.g., `0.5.1`). For custom Dev Clients, upgrade native accordingly.
-- SafeAreaView deprecation: use `react-native-safe-area-context`.
-- Duplicate records: UI removed “Load More”; store de-duplicates by id.
-- No haptics on simulator: verify on a real iOS device.
-
-## Submission
-
-- Exclude `node_modules` from the submission.
-- In README include:
-  - GenAI usage statement
-  - Device/simulator versions used for testing
-  - Attribution for third-party resources
-
-See `doc/PRD.md` and `doc/rule.md` for the full rubric and rules. Code includes teaching-first comments prefixed with `// CN:`.
 
 ## AI Assistance Statement
 
