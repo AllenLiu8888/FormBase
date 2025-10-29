@@ -116,10 +116,24 @@ OR example (PostgREST `or=(...)`):
 - Use Tailwind classes via `className` in RN components.
 - `global.css` imports Tailwind layers; `tailwind.config.js` scans `app/**` and `src/**`.
 
+## Privacy Risks in Mobile Data Collection (Assessment Answer)
+
+- Collection without consent or beyond necessity: e.g., adding an ID field that is not required.
+- Plaintext storage/transmission: e.g., uploading records over public Wi‑Fi without HTTPS.
+- Insufficient access control: e.g., viewing/deleting other users' records without authentication.
+- PII exposure: e.g., names and phone numbers exported to a shareable JSON file.
+- Clipboard exposure: e.g., copying a whole record and other apps subsequently read the clipboard.
+- Misentry of sensitive information: e.g., passwords/bank card numbers entered into a generic "Notes" field.
+- EXIF/geotag exposure: e.g., uploaded photos include capture coordinates and timestamps.
+- Third-party privacy in images: e.g., inadvertently capturing other people's faces or ID details.
+- Overly precise location: e.g., recording points down to a home street address/door number.
+- Third-party map provider collection: e.g., base map tile requests expose coordinates to the map service provider.
+
 ## AI Assistance Statement
 
 This project used ChatGPT to assist with:
 - Writing explanatory code comments
 - Drafting and polishing this README
+- Assisting with code completion, testing, and debugging
 
 All architecture and implementation decisions were reviewed and validated by the author. No proprietary data or credentials were shared with the AI service.
