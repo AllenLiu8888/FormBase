@@ -1,6 +1,7 @@
 import React from 'react';
 import { Stack, router, usePathname } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, Pressable, Text } from 'react-native';
 import RootBottomNav from '../src/components/RootBottomNav';
 import '../global.css';
@@ -10,6 +11,7 @@ export default function RootLayout() {
   // CN: 显式声明部分页面，避免因自动注册异常导致的空白
   const pathname = usePathname();
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <SafeAreaProvider>
       <Stack screenOptions={{
         contentStyle: { backgroundColor: '#fff' },
@@ -17,6 +19,7 @@ export default function RootLayout() {
         headerBackTitle: ' ',
         headerBackVisible: false, // CN: 去掉系统返回按钮
         headerLeft: () => null, // CN: 彻底移除左侧返回图标区域
+        animation: 'fade', // CN: 禁用左右滑动动画，直接替换
       }}>
         <Stack.Screen name="index" options={{ title: 'Home' }} />
         <Stack.Screen name="about" options={{ title: 'About' }} />
@@ -31,5 +34,6 @@ export default function RootLayout() {
         <RootBottomNav />
       )}
     </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

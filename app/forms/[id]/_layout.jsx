@@ -22,6 +22,7 @@ export default function FormTabsLayout() {
       screenOptions={{
         tabBarActiveTintColor: '#111827',
         headerBackTitleVisible: false,
+        animation: 'fade',
         headerLeft: () => (
           <Pressable
             onPress={() => router.replace('/forms')}

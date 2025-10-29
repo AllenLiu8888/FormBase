@@ -110,7 +110,6 @@ export default function FormsListScreen() {
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 140 }}>
           <View className="flex-row items-center justify-between mb-4">
             <Text className="text-base text-gray-700">Total: {forms.length}</Text>
-            <Link href="/" className="text-blue-600">Back to Home</Link>
           </View>
 
           <View className="gap-3">
@@ -143,7 +142,7 @@ export default function FormsListScreen() {
         </Pressable>
       </View>
 
-      {/* CN: 复用的创建/编辑半屏模态组件 */}
+      {/* CN: 复用的创建/编辑模态组件（改为非底部弹起，直接淡入显示） */}
       <FormSheet
         visible={showSheet}
         mode={editingId ? 'edit' : 'create'}
@@ -151,6 +150,7 @@ export default function FormsListScreen() {
         submitting={submitting}
         onSubmit={onSubmitPayload}
         onClose={() => setShowSheet(false)}
+        title={editingId ? 'Edit Form' : 'Create New Form'}
       />
     </View>
   );

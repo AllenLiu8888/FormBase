@@ -1,5 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, Switch } from 'react-native';
+import * as Haptics from 'expo-haptics';
+// CN: 手势根容器已放在 app/_layout.jsx，这里不再重复包裹
+import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import { useLocalSearchParams } from 'expo-router';
 import { useAppStore } from '../../../src/store/useAppStore';
 import FormSheet from '../../../src/components/FormSheet';
@@ -43,29 +46,58 @@ export default function FieldsScreen() {
     setName('');
   }
 
+  const [localData, setLocalData] = useState(() => fields);
+  // CN: 仅在字段的 ID 顺序或数量变化时同步到本地，避免无谓重渲染
+  const idSig = useMemo(() => (Array.isArray(fields) ? fields.map((f) => f.id).join(',') : ''), [fields]);
+  useEffect(() => {
+    if (localData !== fields) {
+      setLocalData(fields);
+    }
+  }, [idSig]);
+
+  const renderItem = ({ item, drag, isActive }) => (
+    <ScaleDecorator>
+      <Pressable
+        onLongPress={drag}
+        disabled={isActive}
+        className="rounded-xl border border-gray-200 p-3 mb-2 bg-white"
+      >
+        <Text className="text-gray-900">{item.name}</Text>
+        <Text className="text-gray-500 text-xs mt-1">type: {item.field_type}</Text>
+      </Pressable>
+    </ScaleDecorator>
+  );
+
   return (
     <View className="flex-1 bg-white">
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 160 }}>
+      <View className="flex-1 px-4 pt-4 pb-40">
         {loading && <Text className="text-gray-600 mt-2">Loading...</Text>}
         {!!error && <Text className="text-red-500 mt-2">Error: {String(error?.message || error)}</Text>}
 
-        <View className="mt-4 gap-2">
-          {fields.map((f) => (
-            <View key={f.id} className="rounded-xl border border-gray-200 p-3">
-              <Text className="text-gray-900">{f.name}</Text>
-              <Text className="text-gray-500 text-xs mt-1">type: {f.field_type}</Text>
-            </View>
-          ))}
-
-          {fields.length === 0 && (
-            <View className="rounded-xl border border-dashed border-gray-300 p-3 items-center">
-              <Text className="text-gray-500">No fields yet.</Text>
-            </View>
-          )}
-        </View>
-
-        {/* CN: 保持内容区域清爽，新增入口用底部固定按钮 */}
-      </ScrollView>
+        {localData.length === 0 ? (
+          <View className="rounded-xl border border-dashed border-gray-300 p-3 items-center">
+            <Text className="text-gray-500">No fields yet.</Text>
+          </View>
+        ) : (
+          <DraggableFlatList
+            data={localData}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={renderItem}
+            onDragBegin={() => {
+              // CN: 开始拖拽时触发轻微震动反馈（iOS 支持）
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }}
+            onDragEnd={({ data }) => {
+              setLocalData(data);
+              // CN: 计算新的顺序并持久化
+              const orderedIds = data.map((d) => d.id);
+              useAppStore.getState().reorderFields(formId, orderedIds);
+            }}
+            containerStyle={{ paddingBottom: 16 }}
+            contentContainerStyle={{ paddingBottom: 16 }}
+          />
+        )}
+      </View>
 
       {/* CN: 底部固定“Add Field”按钮（与 My Forms 的按钮一致风格） */}
       <View className="absolute left-0 right-0 bottom-24 px-10 pb-5">

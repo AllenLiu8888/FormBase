@@ -196,7 +196,7 @@ export default function RecordsScreen() {
                     <RNImage source={{ uri: String(imageUri) }} style={{ width: 56, height: 56, borderRadius: 8 }} />
                   )}
                 </View>
-              </View>？
+              </View>
               <View className="flex-row gap-3 mt-2">
                 <Pressable disabled={deletingId === r.id} onPress={() => deleteRecord(formId, r.id)} className="px-3 py-2 rounded-full border border-gray-300">
                   <Text className="text-gray-800 text-sm">Delete</Text>
@@ -215,13 +215,7 @@ export default function RecordsScreen() {
           {recState.items.length === 0 && <Text className="text-gray-500">No records.</Text>}
         </View>
 
-        {recState.hasMore && (
-          <View className="mt-4">
-            <Pressable disabled={loading} onPress={() => fetchRecords(formId, { limit: 20, append: true })} className="w-full rounded-full border border-gray-300 py-3.5 items-center">
-              <Text className="text-gray-800 text-base">{loading ? 'Loading...' : 'Load More'}</Text>
-            </Pressable>
-          </View>
-        )}
+        {/* CN: 已移除 Load More，列表一次性拉取当前条件下的前 N 条 */}
       </ScrollView>
 
       {/* CN: 底部固定按钮区：仅 Add Record */}

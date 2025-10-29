@@ -65,6 +65,7 @@ export const FormApi = {
 export const FieldApi = {
   listByForm: (formId) => apiRequest(`/field?form_id=eq.${formId}`),
   create: (payload) => apiRequest('/field', 'POST', payload),
+  update: (id, partial) => apiRequest(`/field?id=eq.${id}`, 'PATCH', partial),
 };
 
 // CN: 记录资源 API

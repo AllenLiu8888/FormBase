@@ -39,7 +39,7 @@ export default function FormSheet({ visible, mode, initialValues, submitting, on
   }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       {/* CN: 居中遮罩层（点击空白处关闭） */}
       <View className="flex-1 items-center justify-center">
         <Pressable className="absolute inset-0 bg-black/50" onPress={onClose} />

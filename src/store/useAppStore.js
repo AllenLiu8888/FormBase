@@ -93,7 +93,10 @@ export const useAppStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const data = await FieldApi.listByForm(formId);
-      get().setFieldsForForm(formId, Array.isArray(data) ? data : []);
+      const arr = Array.isArray(data) ? data : [];
+      // CN: 渲染按 order_index 升序
+      arr.sort((a, b) => (a?.order_index ?? 0) - (b?.order_index ?? 0));
+      get().setFieldsForForm(formId, arr);
       set({ loading: false });
     } catch (e) {
       set({ error: e, loading: false });
@@ -127,13 +130,28 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
+  // CN: 字段排序：批量更新 order_index
+  reorderFields: async (formId, orderedIds) => {
+    if (!formId || !Array.isArray(orderedIds)) return;
+    // 本地更新
+    const current = get().fieldsByForm[String(formId)] || [];
+    const idToField = new Map(current.map((f) => [f.id, f]));
+    const next = orderedIds.map((id, idx) => ({ ...idToField.get(id), order_index: idx + 1 }));
+    get().setFieldsForForm(formId, next);
+    // 持久化（串行，避免版本冲突）。失败不抛出，以免阻塞 UI
+    for (let i = 0; i < orderedIds.length; i++) {
+      const id = orderedIds[i];
+      try { await FieldApi.update(id, { order_index: i + 1 }); } catch {}
+    }
+  },
+
   // CN: 记录 Actions —— 列表/创建/删除（分页）
-  fetchRecords: async (formId, { limit = 20, append = false, conditions, join = 'AND' } = {}) => {
+  fetchRecords: async (formId, { limit = 50, append = false, conditions, join = 'AND' } = {}) => {
     if (!formId) return;
     set({ loading: true, error: null });
     try {
       const state = get().recordsByForm[String(formId)] || { items: [], offset: 0 };
-      const offset = append ? state.offset : 0;
+      const offset = 0; // CN: 去除分页，始终从 0 开始
       let list;
       if (Array.isArray(conditions) && conditions.length > 0) {
         const base = buildJsonbFilterQuery(formId, conditions, join);
@@ -143,8 +161,14 @@ export const useAppStore = create((set, get) => ({
         list = await RecordApi.listByForm(formId, { limit, offset });
       }
       const items = Array.isArray(list) ? list : [];
-      const nextItems = append ? [...(state.items || []), ...items] : items;
-      get().setRecordsForForm(formId, nextItems, offset + items.length, items.length === limit);
+      // CN: 去重，避免“重复数据”视觉问题（按 id 去重）
+      const unique = [];
+      const seen = new Set();
+      for (const it of items) {
+        const key = it?.id ?? JSON.stringify(it);
+        if (!seen.has(key)) { seen.add(key); unique.push(it); }
+      }
+      get().setRecordsForForm(formId, unique, unique.length, false);
       set({ loading: false });
     } catch (e) {
       set({ error: e, loading: false });
