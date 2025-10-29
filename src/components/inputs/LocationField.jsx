@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 
 export default function LocationField({ label, value, onPick }) {
-  // CN: 仅采集一次当前位置（经纬度 json），权限交互后续完善
+  // Pick current location once (lon/lat JSON); simplified permissions flow
   return (
     <View>
       {!!label && <Text className="text-gray-700 mb-2">{label}</Text>}

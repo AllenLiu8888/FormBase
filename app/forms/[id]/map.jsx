@@ -5,6 +5,7 @@ import MapView, { Marker, Callout } from 'react-native-maps';
 import { useAppStore } from '../../../src/store/useAppStore';
 
 export default function MapScreen() {
+  // Map screen — render markers for records that include location fields
   const { id } = useLocalSearchParams();
   const recordsByForm = useAppStore((s) => s.recordsByForm);
   const fetchRecords = useAppStore((s) => s.fetchRecords);
@@ -27,7 +28,7 @@ export default function MapScreen() {
           const key = locationKeys.find((k) => r?.values && r.values[k]);
           if (key) loc = r.values[key];
         }
-        // 兼容历史兜底
+        // Legacy fallback keys
         if (!loc) loc = r?.values?.location || r?.values?.Location || r?.values?.loc;
         return { r, loc };
       })

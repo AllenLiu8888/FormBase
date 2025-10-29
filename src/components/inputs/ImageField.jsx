@@ -3,7 +3,7 @@ import { View, Text, Pressable, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function ImageField({ label, value, onPick }) {
-  // CN: 选择图片（相册/拍照），仅保存 URI
+  // Pick an image (library/camera) and store the URI only
   async function pickFromLibrary() {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();

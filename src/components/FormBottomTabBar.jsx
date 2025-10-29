@@ -5,7 +5,7 @@ import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function FormBottomTabBar({ formId, hasMap = true }) {
-  // CN: 表单内三页的自定义底部 Tab Bar，样式与 RootBottomNav 统一
+  // Custom bottom Tab Bar for form detail pages; style mirrors RootBottomNav
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const base = `/forms/${formId}`;

@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 
 export default function AboutScreen() {
-  // CN: 关于页面，展示应用与课程信息
+  // About screen — showcases app features and course context
   return (
     <View className="flex-1 bg-white px-8 pt-28">
       <View className="items-center mb-6 px-8">

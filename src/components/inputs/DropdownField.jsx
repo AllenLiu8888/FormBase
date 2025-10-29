@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 
 export default function DropdownField({ label, value, onChange, options = [], placeholder = 'Select' }) {
-  // CN: 简易下拉选择
+  // Simple dropdown selector
   const [open, setOpen] = useState(false);
   return (
     <View>

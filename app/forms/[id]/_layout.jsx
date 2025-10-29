@@ -7,7 +7,7 @@ import FormBottomTabBar from '../../../src/components/FormBottomTabBar';
 import { useAppStore } from '../../../src/store/useAppStore';
 
 export default function FormTabsLayout() {
-  // CN: 针对某个 form 的子路由，使用底部 Tabs 导航；头部样式与父级保持一致，并显示返回图标
+  // Tab layout for a single form: bottom tabs with a custom back button in header
   const { id } = useLocalSearchParams();
   const fieldsByForm = useAppStore((s) => s.fieldsByForm);
   const fetchFields = useAppStore((s) => s.fetchFields);
@@ -40,7 +40,7 @@ export default function FormTabsLayout() {
       <Tabs.Screen
         name="fields"
         options={{
-          title: 'Fields', // CN: 使用默认标题样式，继承父级风格
+          title: 'Fields', // Use default title style; inherits parent
           tabBarIcon: ({ color, size }) => (<Ionicons name="list-outline" color={color} size={size} />),
         }}
       />

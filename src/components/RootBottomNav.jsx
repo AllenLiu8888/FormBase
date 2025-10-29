@@ -5,7 +5,7 @@ import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RootBottomNav() {
-  // CN: 根级底部导航（About / Home / Forms），与表单内部样式统一
+  // Root-level bottom nav (About / Home / Forms); unified style with form tabs
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   return (

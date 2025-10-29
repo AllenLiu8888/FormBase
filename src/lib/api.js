@@ -1,10 +1,10 @@
-// CN: 统一 API 工具（前端版），参考 formbase_sample_api/app.js 并适配 React Native 环境
+// Unified API utility for the React Native frontend; adapted from sample backend contract
 import Constants from 'expo-constants';
 
-// CN: 从 Expo extra 读取变量（由 app.config.js 注入）
+// Read runtime variables from Expo extra (injected via app.config.js)
 const { API_BASE_URL, JWT_TOKEN, USERNAME } = Constants.expoConfig?.extra || {};
 
-// CN: 基础校验，开发期尽早发现未配置的环境变量
+// Basic guard to fail fast when required env vars are missing
 export function assertEnvReady() {
   if (!API_BASE_URL) throw new Error('API_BASE_URL undefined');
   if (!JWT_TOKEN) throw new Error('JWT_TOKEN undefined');
@@ -12,11 +12,11 @@ export function assertEnvReady() {
 }
 
 /**
- * 发起 API 请求
- * @param {string} endpoint - 形如 "/form"、"/field"、"/record" 或包含查询的完整路径
- * @param {string} method - GET/POST/PATCH/DELETE，默认 GET
- * @param {object|null} body - 写操作请求体，自动附加 username
- * @returns {Promise<any>} - JSON 响应或空对象（无内容）
+ * Perform an API request
+ * @param {string} endpoint - e.g. "/form", "/field", "/record" or full path with query
+ * @param {string} method - GET/POST/PATCH/DELETE (default: GET)
+ * @param {object|null} body - write payload; username is auto-injected
+ * @returns {Promise<any>} - JSON response or empty object for no-content
  */
 export async function apiRequest(endpoint, method = 'GET', body = null) {
   assertEnvReady();
@@ -32,7 +32,7 @@ export async function apiRequest(endpoint, method = 'GET', body = null) {
 
   const options = { method, headers };
   if (body) {
-    // CN: 后端要求所有写操作体内包含 username 以满足行级安全
+    // Backend requires username in all write payloads to satisfy row-level security
     options.body = JSON.stringify({ ...body, username: USERNAME });
   }
 
@@ -42,33 +42,33 @@ export async function apiRequest(endpoint, method = 'GET', body = null) {
     throw new Error(`HTTP ${res.status}: ${text}`);
   }
 
-  // CN: 处理无内容或非 JSON 响应，避免 JSON 解析错误（如 DELETE 204）
+  // Handle no-content or non-JSON responses safely (e.g., DELETE 204)
   if (res.status === 204) return {};
   const contentType = res.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
     return res.json();
   }
-  // CN: 其他情况返回空对象（例如空文本）
+  // Fallback: return empty object (e.g., empty text)
   return {};
 }
 
-// CN: 表单资源 API
+// Form resource API
 export const FormApi = {
   list: () => apiRequest('/form'),
   create: ({ name, description }) => apiRequest('/form', 'POST', { name, description }),
   update: (id, partial) => apiRequest(`/form?id=eq.${id}`, 'PATCH', partial),
-  // CN: 删除时附加 username=eq 过滤，只删除本人数据
+  // Delete with username filter to ensure only own data is affected
   remove: (id) => apiRequest(`/form?id=eq.${id}&username=eq.${USERNAME}`, 'DELETE'),
 };
 
-// CN: 字段资源 API
+// Field resource API
 export const FieldApi = {
   listByForm: (formId) => apiRequest(`/field?form_id=eq.${formId}`),
   create: (payload) => apiRequest('/field', 'POST', payload),
   update: (id, partial) => apiRequest(`/field?id=eq.${id}`, 'PATCH', partial),
 };
 
-// CN: 记录资源 API
+// Record resource API
 export const RecordApi = {
   listByForm: (formId, { limit = 20, offset = 0 } = {}) =>
     apiRequest(`/record?form_id=eq.${formId}&limit=${limit}&offset=${offset}`),
@@ -76,19 +76,19 @@ export const RecordApi = {
   remove: (id) => apiRequest(`/record?id=eq.${id}&username=eq.${USERNAME}`, 'DELETE'),
 };
 
-// CN: JSONB 过滤构造（线性 AND/OR，不支持括号分组）
-// CN: conditions 示例：[{ path: "values->>category", op: "ilike", value: "*Python*" }]
+// JSONB filter query builder (linear AND/OR, no grouped parentheses)
+// conditions example: [{ path: "values->>category", op: "ilike", value: "*Python*" }]
 export function buildJsonbFilterQuery(formId, conditions = [], join = 'AND') {
   const base = [`form_id=eq.${formId}`];
   if (!Array.isArray(conditions) || conditions.length === 0) return `/record?${base.join('&')}`;
 
   const upperJoin = (join || 'AND').toUpperCase();
   if (upperJoin === 'OR') {
-    // CN: or=() 语法需要 path.op.value，用点连接；path 使用原始 JSON 路径（values->>field）
+    // PostgREST or=() uses dotted path.op.value; path uses raw JSON path (values->>field)
     const parts = conditions.map((c) => `${c.path}.${c.op}.${c.value}`);
     return `/record?${base.join('&')}&or=(${parts.join(',')})`;
   }
-  // AND：线性参数 path=op.value
+  // AND: linear params path=op.value
   const items = conditions.map((c) => `${encodeURIComponent(c.path)}=${c.op}.${encodeURIComponent(c.value)}`);
   return `/record?${[...base, ...items].join('&')}`;
 }

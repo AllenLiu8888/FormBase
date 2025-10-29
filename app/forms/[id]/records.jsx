@@ -23,7 +23,7 @@ const OP_OPTIONS = [
 ];
 
 export default function RecordsScreen() {
-  // CN: 记录列表 + 动态录入
+  // Records list with dynamic entry form and filtering
   const { id } = useLocalSearchParams();
   const formId = id;
   const fieldsByForm = useAppStore((s) => s.fieldsByForm);
@@ -114,7 +114,7 @@ export default function RecordsScreen() {
           label={f.name}
           value={values[key]}
           onPick={async () => {
-            // CN: 先使用 Geolocation 简版占位；后续可替换为 expo-location 并完善权限
+            // Lightweight Geolocation fallback; can be replaced with expo-location
             try {
               navigator.geolocation.getCurrentPosition(
                 (pos) => setFieldValue(key, { lon: pos.coords.longitude, lat: pos.coords.latitude }),
@@ -215,17 +215,17 @@ export default function RecordsScreen() {
           {recState.items.length === 0 && <Text className="text-gray-500">No records.</Text>}
         </View>
 
-        {/* CN: 已移除 Load More，列表一次性拉取当前条件下的前 N 条 */}
+        {/* Load More removed; fetch top N records for current criteria */}
       </ScrollView>
 
-      {/* CN: 底部固定按钮区：仅 Add Record */}
+      {/* Bottom fixed button area: Add Record only */}
       <View className="absolute left-0 right-0 bottom-24 px-10 pb-5 gap-3">
         <Pressable onPress={() => setShowForm(true)} className="w-full rounded-full bg-black py-3.5 items-center">
           <Text className="text-white text-base font-semibold">Add Record</Text>
         </Pressable>
       </View>
 
-      {/* CN: 弹窗表单（使用与 Fields 相同的 FormSheet，schema 动态生成） */}
+      {/* Modal form (same FormSheet as Fields; schema generated dynamically) */}
       <FormSheet
         visible={showForm}
         mode="create"
@@ -258,7 +258,7 @@ export default function RecordsScreen() {
         })}
       />
 
-      {/* CN: 过滤条件弹窗（可添加多条条件 + AND/OR） */}
+      {/* Filter criteria modal (supports multiple rules with AND/OR) */}
       <FormSheet
         visible={showFilter}
         mode="create"
@@ -295,4 +295,3 @@ export default function RecordsScreen() {
   );
 }
 
-// CN: 文件末尾无其他导出，避免重复声明

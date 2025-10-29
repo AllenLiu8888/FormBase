@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 export default function FormCard({ id, name, description, onPress, onEdit, onDelete, deleting }) {
-  // CN: 单个表单卡片：图标 + 标题/描述 + 进入箭头 + 编辑/删除按钮
+  // Single form card: icon + title/description + edit/delete actions
   const handlePress = onPress || (() => router.push(`/forms/${id}/fields`));
   return (
     <View className="w-full rounded-2xl bg-white border border-gray-200 shadow-sm px-4 py-3 flex-row items-center">

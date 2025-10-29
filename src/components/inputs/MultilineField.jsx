@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TextInput } from 'react-native';
 
 export default function MultilineField({ label, value, onChangeText, placeholder, numberOfLines = 4 }) {
-  // CN: 多行文本输入
+  // Multiline text input
   return (
     <View>
       {!!label && <Text className="text-gray-700 mb-2">{label}</Text>}

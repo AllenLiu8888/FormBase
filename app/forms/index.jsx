@@ -9,27 +9,27 @@ import FormSheet from '../../src/components/FormSheet';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FormsListScreen() {
-  // CN: 我的表单列表屏，使用卡片样式展示（Apple 风格 + Tailwind）
-  // CN: 从 store 读取全局状态
+  // My Forms list screen (card layout, Apple HIG + Tailwind)
+  // Read global state from the store
   const forms = useAppStore((s) => s.forms);
   const loading = useAppStore((s) => s.loading);
   const submitting = useAppStore((s) => s.submitting);
   const deletingId = useAppStore((s) => s.deletingId);
   const error = useAppStore((s) => s.error);
-  // CN: actions
+  // Actions
   const fetchForms = useAppStore((s) => s.fetchForms);
   const createForm = useAppStore((s) => s.createForm);
   const updateForm = useAppStore((s) => s.updateForm);
   const deleteForm = useAppStore((s) => s.deleteForm);
 
-  // CN: 底部“新增/编辑表单”半屏模态（复用同一个组件与状态）
+  // Bottom modal (create/edit form) using a shared component and state
   const [showSheet, setShowSheet] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [editingId, setEditingId] = useState(null); // CN: 有值则为“编辑”模式
+  const [editingId, setEditingId] = useState(null); // non-null => edit mode
   const sheetHeight = useMemo(() => Math.round(Dimensions.get('window').height * 0.5), []);
 
-  // CN: 下拉关闭手势（简易）
+  // Simple drag-to-dismiss gesture for the modal
   const [dragStartY, setDragStartY] = useState(null);
   const onGrant = (e) => setDragStartY(e.nativeEvent.pageY);
   const onMove = (e) => {
@@ -47,7 +47,7 @@ export default function FormsListScreen() {
   }, [fetchForms]);
 
   function openCreateSheet() {
-    // CN: 打开创建模式
+    // Open create mode
     setEditingId(null);
     setName('');
     setDescription('');
@@ -55,7 +55,7 @@ export default function FormsListScreen() {
   }
 
   function openEditSheet(form) {
-    // CN: 打开编辑模式，预填充
+    // Open edit mode with prefilled values
     setEditingId(form.id);
     setName(form.name || '');
     setDescription(form.description || '');
@@ -68,10 +68,10 @@ export default function FormsListScreen() {
     if (!nextName) return;
     try {
       if (editingId) {
-        // CN: 编辑（使用 store action）
+        // Edit (via store action)
         await updateForm(editingId, { name: nextName, description: nextDesc });
       } else {
-        // CN: 创建（使用 store action）
+        // Create (via store action)
         await createForm({ name: nextName, description: nextDesc });
       }
       setShowSheet(false);
@@ -82,7 +82,7 @@ export default function FormsListScreen() {
   }
 
   function confirmDelete(formId) {
-    // CN: 删除确认
+    // Delete confirmation
     Alert.alert('Delete Form', 'Are you sure you want to delete this form?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => onDelete(formId) },
@@ -134,7 +134,7 @@ export default function FormsListScreen() {
         </ScrollView>
       )}
 
-      {/* CN: 底部仅按钮（无背景条），预留安全区与额外间距，圆角更大，与手机底部弧度对齐 */}
+      {/* Bottom-only action button (no bar). Safe area + extra spacing, large radius. */}
       <View className="absolute left-0 right-0 bottom-24 px-10 pb-5">
         <Pressable onPress={openCreateSheet} className="w-full rounded-full bg-black py-3.5 items-center flex-row justify-center gap-2 shadow">
           <Ionicons name="add" size={18} color="#ffffff" />
@@ -142,7 +142,7 @@ export default function FormsListScreen() {
         </Pressable>
       </View>
 
-      {/* CN: 复用的创建/编辑模态组件（改为非底部弹起，直接淡入显示） */}
+      {/* Reusable create/edit modal (centered fade-in, not a bottom sheet) */}
       <FormSheet
         visible={showSheet}
         mode={editingId ? 'edit' : 'create'}

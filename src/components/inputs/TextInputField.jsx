@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TextInput } from 'react-native';
 
 export default function TextInputField({ label, value, onChangeText, placeholder, keyboardType = 'default' }) {
-  // CN: 统一样式的单行文本输入
+  // Single-line text input with unified styles
   return (
     <View>
       {!!label && <Text className="text-gray-700 mb-2">{label}</Text>}

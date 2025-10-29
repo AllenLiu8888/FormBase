@@ -2,19 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TextInput, KeyboardAvoidingView, Platform, Pressable, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// CN: 通用表单弹窗（支持 schema 渲染：input/select）。若不传 schema，则走旧的 name/description 模式以兼容调用方。
+// Generic form modal (supports schema rendering). Falls back to name/description mode if no schema.
 export default function FormSheet({ visible, mode, initialValues, submitting, onSubmit, onClose, title: titleOverride, showDescription = true, nameLabel = 'Name', descriptionLabel = 'Description', submitLabel, schema }) {
-  // CN: 复用创建/编辑的“居中”模态对话框
+  // Centered modal reused for create/edit flows
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [values, setValues] = useState({}); // CN: schema 模式下的通用表单值
-  const [openSelectKey, setOpenSelectKey] = useState(null); // CN: 当前展开的下拉
+  const [values, setValues] = useState({}); // Form values in schema-driven mode
+  const [openSelectKey, setOpenSelectKey] = useState(null); // Currently open select key
   const { width, height } = useWindowDimensions();
-  // CN: 更“横向”的比例：更宽；高度随内容自适应，并限制最大高度防止溢出
+  // Wider layout; height auto with a max cap to avoid overflow
   const modalWidth = Math.min(Math.round(width * 0.92), 720);
   const maxHeight = Math.round(height * 0.8);
 
-  // CN: 打开时预填充/重置
+  // Prefill/reset when modal opens
   useEffect(() => {
     if (visible) {
       setName(initialValues?.name || '');
@@ -26,35 +26,35 @@ export default function FormSheet({ visible, mode, initialValues, submitting, on
 
   function handleSubmit() {
     if (schema && Array.isArray(schema) && schema.length > 0) {
-      // CN: 校验：至少应包含 name 时才允许提交（业务可按需调整）
+      // Minimal validation: require non-empty name when present
       const v = { ...values };
       if (typeof v.name === 'string' && !v.name.trim()) return;
       if (typeof v.name === 'string') v.name = v.name.trim();
       onSubmit?.(v);
       return;
     }
-    // CN: 向后兼容旧模式
+    // Backward-compatible legacy mode
     if (!name.trim()) return;
     onSubmit?.({ name: name.trim(), description: description.trim() });
   }
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
-      {/* CN: 居中遮罩层（点击空白处关闭） */}
+      {/* Center overlay (tap outside to close) */}
       <View className="flex-1 items-center justify-center">
         <Pressable className="absolute inset-0 bg-black/50" onPress={onClose} />
         <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })}>
           <View style={{ width: modalWidth, maxHeight }} className="mx-4 bg-white rounded-3xl px-6 pt-6 pb-6 border border-gray-100 shadow-xl">
             <Text className="text-2xl font-semibold mb-6">{titleOverride || (mode === 'edit' ? 'Edit' : 'Create')}</Text>
 
-            {/* CN: schema 渲染优先 */}
+            {/* Schema-driven rendering first */}
             {Array.isArray(schema) && schema.length > 0 ? (
               <View className="gap-4">
                 {(schema.filter((f) => !f.visibleWhen || f.visibleWhen(values))).map((f, idx) => {
                   if (f.type === 'input') {
-                    // CN: 特殊键 __pair__ 用于插入 Required/Is Number 横排控件
+                    // Special key __pair__ inserts the Required/Is Number row
                     if (f.key === '__pair__') {
-                      // 动态引入，避免循环依赖
+                      // Dynamic import to avoid circular dependencies
                       const Pair = require('./inputs/CheckboxPairRow').default;
                       return (
                         <View key="__pair__-wrap" className="pt-2">
@@ -211,7 +211,7 @@ export default function FormSheet({ visible, mode, initialValues, submitting, on
               </View>
             )}
 
-            {/* CN: 居中模态底部胶囊按钮 */}
+            {/* Modal footer pill buttons */}
             <View className="flex-row gap-3 mt-6 pt-4">
               <Pressable disabled={submitting} onPress={onClose} className="flex-1 rounded-full border border-gray-300 py-3.5 items-center">
                 <Text className="text-gray-800 text-base">Cancel</Text>

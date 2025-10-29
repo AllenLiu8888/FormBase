@@ -3,6 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function CheckboxField({ label, value, onChange }) {
+  // Checkbox input using Pressable + Ionicons
   const checked = Boolean(value);
   return (
     <Pressable

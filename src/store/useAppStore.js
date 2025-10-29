@@ -2,27 +2,27 @@ import { create } from 'zustand';
 import Constants from 'expo-constants';
 import { FormApi, FieldApi, RecordApi, buildJsonbFilterQuery, apiRequest } from '../lib/api';
 
-// CN: 从 Expo extra 读取初始的用户名与 JWT，便于全局使用
+// Read initial username and JWT from Expo extra for global use
 const { USERNAME, JWT_TOKEN } = Constants.expoConfig?.extra || {};
 
 export const useAppStore = create((set, get) => ({
-  // CN: 用户与认证
+  // User/auth
   username: USERNAME || '',
   jwtToken: JWT_TOKEN || '',
   setAuth: ({ username, jwtToken }) => set({ username, jwtToken }),
 
-  // CN: 表单数据与状态
+  // Forms data and global UI state
   forms: [],
   loading: false,
   submitting: false,
   deletingId: null,
   error: null,
 
-  // CN: 字段数据（按 formId 归档）
+  // Field and record data, bucketed by formId
   fieldsByForm: {},
-  recordsByForm: {}, // CN: { [formId]: { items: [], offset, hasMore } }
+  recordsByForm: {}, // { [formId]: { items: [], offset, hasMore } }
 
-  // CN: 内部通用 setter
+  // Internal generic setters
   setForms: (forms) => set({ forms: Array.isArray(forms) ? forms : [] }),
   setError: (error) => set({ error }),
   setFieldsForForm: (formId, fields) =>
@@ -35,7 +35,7 @@ export const useAppStore = create((set, get) => ({
       },
     })),
 
-  // CN: Actions —— 统一封装 API 调用，页面只调这些方法
+  // Actions — unified API calls; screens only interact with these
   fetchForms: async () => {
     set({ loading: true, error: null });
     try {
@@ -87,14 +87,14 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
-  // CN: 字段 Actions —— 列表与创建（先支持 text）
+  // Field actions — list and create (supports multiple field types)
   fetchFields: async (formId) => {
     if (!formId) return;
     set({ loading: true, error: null });
     try {
       const data = await FieldApi.listByForm(formId);
       const arr = Array.isArray(data) ? data : [];
-      // CN: 渲染按 order_index 升序
+      // Sort by ascending order_index for rendering
       arr.sort((a, b) => (a?.order_index ?? 0) - (b?.order_index ?? 0));
       get().setFieldsForForm(formId, arr);
       set({ loading: false });
@@ -107,7 +107,7 @@ export const useAppStore = create((set, get) => ({
     if (!formId || !name) return;
     set({ submitting: true, error: null });
     try {
-      // CN: 后端字段为 field_type（非 type），并需要 required/is_num/order_index
+      // Backend expects field_type (not type) and requires required/is_num/order_index
       const key = String(formId);
       const current = get().fieldsByForm[key] || [];
       const payload = {
@@ -130,28 +130,28 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
-  // CN: 字段排序：批量更新 order_index
+  // Field reordering — batch update order_index
   reorderFields: async (formId, orderedIds) => {
     if (!formId || !Array.isArray(orderedIds)) return;
-    // 本地更新
+    // Local optimistic update
     const current = get().fieldsByForm[String(formId)] || [];
     const idToField = new Map(current.map((f) => [f.id, f]));
     const next = orderedIds.map((id, idx) => ({ ...idToField.get(id), order_index: idx + 1 }));
     get().setFieldsForForm(formId, next);
-    // 持久化（串行，避免版本冲突）。失败不抛出，以免阻塞 UI
+    // Persist sequentially to avoid version conflicts; swallow errors to keep UI responsive
     for (let i = 0; i < orderedIds.length; i++) {
       const id = orderedIds[i];
       try { await FieldApi.update(id, { order_index: i + 1 }); } catch {}
     }
   },
 
-  // CN: 记录 Actions —— 列表/创建/删除（分页）
+  // Record actions — list/create/delete (UI uses de-duplicated list)
   fetchRecords: async (formId, { limit = 50, append = false, conditions, join = 'AND' } = {}) => {
     if (!formId) return;
     set({ loading: true, error: null });
     try {
       const state = get().recordsByForm[String(formId)] || { items: [], offset: 0 };
-      const offset = 0; // CN: 去除分页，始终从 0 开始
+      const offset = 0; // Remove pagination; always start from 0
       let list;
       if (Array.isArray(conditions) && conditions.length > 0) {
         const base = buildJsonbFilterQuery(formId, conditions, join);
@@ -161,7 +161,7 @@ export const useAppStore = create((set, get) => ({
         list = await RecordApi.listByForm(formId, { limit, offset });
       }
       const items = Array.isArray(list) ? list : [];
-      // CN: 去重，避免“重复数据”视觉问题（按 id 去重）
+      // De-duplicate by id to avoid visual duplicates
       const unique = [];
       const seen = new Set();
       for (const it of items) {

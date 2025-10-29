@@ -119,7 +119,7 @@ OR example (PostgREST `or=(...)`):
 ## AI Assistance Statement
 
 This project used ChatGPT to assist with:
-- Writing explanatory code comments (prefixed with `// CN:` for teaching purposes)
+- Writing explanatory code comments
 - Drafting and polishing this README
 
 All architecture and implementation decisions were reviewed and validated by the author. No proprietary data or credentials were shared with the AI service.

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, Switch } from 'react-native';
 import * as Haptics from 'expo-haptics';
-// CN: 手势根容器已放在 app/_layout.jsx，这里不再重复包裹
+// Gesture root is provided in app/_layout.jsx; no need to wrap here
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import { useLocalSearchParams } from 'expo-router';
 import { useAppStore } from '../../../src/store/useAppStore';
@@ -9,7 +9,7 @@ import FormSheet from '../../../src/components/FormSheet';
 import CheckboxPairRow from '../../../src/components/inputs/CheckboxPairRow';
 
 export default function FieldsScreen() {
-  // CN: 字段列表与新增（先支持 text 字段）
+  // Field list with creation (supports text/multiline/dropdown/location/image)
   const { id } = useLocalSearchParams();
   const formId = id;
   const loading = useAppStore((s) => s.loading);
@@ -47,7 +47,7 @@ export default function FieldsScreen() {
   }
 
   const [localData, setLocalData] = useState(() => fields);
-  // CN: 仅在字段的 ID 顺序或数量变化时同步到本地，避免无谓重渲染
+  // Sync local list only when field id order/count changes to reduce renders
   const idSig = useMemo(() => (Array.isArray(fields) ? fields.map((f) => f.id).join(',') : ''), [fields]);
   useEffect(() => {
     if (localData !== fields) {
@@ -84,12 +84,12 @@ export default function FieldsScreen() {
             keyExtractor={(item) => String(item.id)}
             renderItem={renderItem}
             onDragBegin={() => {
-              // CN: 开始拖拽时触发轻微震动反馈（iOS 支持）
+              // Trigger subtle haptic feedback when drag begins (iOS supported)
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             }}
             onDragEnd={({ data }) => {
               setLocalData(data);
-              // CN: 计算新的顺序并持久化
+              // Compute new order and persist order_index
               const orderedIds = data.map((d) => d.id);
               useAppStore.getState().reorderFields(formId, orderedIds);
             }}
@@ -99,7 +99,7 @@ export default function FieldsScreen() {
         )}
       </View>
 
-      {/* CN: 底部固定“Add Field”按钮（与 My Forms 的按钮一致风格） */}
+      {/* Bottom fixed “Add Field” button (matches My Forms style) */}
       <View className="absolute left-0 right-0 bottom-24 px-10 pb-5">
         <Pressable onPress={() => setShowSheet(true)} className="w-full rounded-full bg-black py-3.5 items-center flex-row justify-center gap-2 shadow">
           <Text className="text-white text-base font-semibold">Add Field</Text>
@@ -119,7 +119,7 @@ export default function FieldsScreen() {
         schema={[
           { key: 'name', type: 'input', label: 'Field Name', placeholder: 'Enter field name' },
           { key: 'field_type', type: 'select', label: 'Type', options: ['text', 'multiline', 'dropdown', 'location', 'image'], placeholder: 'Select type' },
-          // CN: 使用占位项，实际在 FormSheet 内可插槽渲染，但此处简单：用 visibleWhen 触发一个空占位，组件内部不渲染
+          // Placeholder entry used by FormSheet to render the required/number pair row
           { key: '__pair__', type: 'input', label: '', placeholder: '', visibleWhen: () => true },
           { key: 'options', type: 'input', label: 'Dropdown Options (comma separated)', placeholder: 'e.g. option1, option2', visibleWhen: (v) => v.field_type === 'dropdown' },
         ]}
